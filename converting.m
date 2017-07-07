@@ -64,10 +64,6 @@ function CompileData(dataz)
     dy = latsr(2:len)-latsr(1:len-1);
     ds = 6.371E3 * sqrt(dx.^2 + dy.^2);  % in km
     
-    if ds>30
-        ds = 0; % most likely different data set
-    end
-    
     dist(1:len) = 0.00;
     
     for i = 1:len-1
