@@ -26,8 +26,8 @@ analyze_correlations(data_structure);
 
 function CompileData(dataz)
     [x y] = size(dataz);
-    date_num = zeros(x, y);
-    date_str = zeros(x, y);
+    date_num = zeros(x,1);
+    distance = zeros(x,1);
     lons = dataz(:,4);
     lats = dataz(:,5);
     pCO2_1 = dataz(:,6);
@@ -52,10 +52,31 @@ function CompileData(dataz)
     end
     disp('Date Conversion Done');
     toc
+    % dx = cos(latr(2:nv)).*(lonr(2:nv)-lonr(1:nv-1));
+    %dy =                  (latr(2:nv)-latr(1:nv-1));
+     %ds = 6.37e3*sqrt(dx.^2 + dy.^2);    
+    
+    len = x;
+    lonsr = lons * 180/pi;
+    latsr = lats * 180/pi;
+    
+    dx = cos(latsr(2:len)) .* (lonsr(2:len) - lonsr(1:len-1));  
+    dy = latsr(2:len)-latsr(1:len-1);
+    ds = 6.371E3 * sqrt(dx.^2 + dy.^2);  % in km
+    
+    if ds>30
+        ds = 0; % most likely different data set
+    end
+    
+    dist(1:len) = 0.00;
+    
+    for i = 1:len-1
+        dist(i+1) = dist(i) + ds(i);
+    end
 
     data_structure = struct('date_num',date_num,'lons',lons,'lats', ...
-    lats,'pCO2_1',pCO2_1,'pCO2_2',pCO2_2,'temps',temps,'salts',salts,'cons',cons,'fluorescence',flour);
+    lats,'pCO2_1',pCO2_1,'pCO2_2',pCO2_2,'temps',temps,'salts',salts,'cons',cons,'fluorescence',flour,'dist',dist);
 
     save('CompiledDataSet.mat','data_structure');
-    save('IndividualNames.mat','date_num','lons','lats','pCO2_1','pCO2_2','temps','salts','cons','flour');
+    save('IndividualNames.mat','date_num','lons','lats','pCO2_1','pCO2_2','temps','salts','cons','flour','dist');
 end
