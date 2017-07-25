@@ -9,36 +9,51 @@
 % 
 % plot(points)
 
-c0 = pi;
+
+c0 = 50;
 h = 50;
-dt = 1;
+dt = 100;
 t = 1000; % (100*10) since dt is 100, 10 steps is nice
 dz = 1;
-Kappa = .9; % idk ? (m/s)
+Kappa = 1E-3; % idk ? (m/s)
 
-
+% boundary conditions?
 matrix = ones(h,t);
 matrix = ones(h, t);
 matrix(:,1) = c0;
 matrix(h,:) = 0;
 matrix(1,:) = 1;
 
-tic
-for frame = 2:dt:t-1
-    for height = 1:dz:h-1
-       matrix(height+1,frame) = matrix(height,frame) + Kappa * dt/dz^2*(matrix(height,frame+1) - 2*matrix(height,frame) + matrix(height,frame-1));
+actual_time = 1;
+%actual_depth = 1; %dz = 1 right now, don't need yet
+for time = 1:dt:t-1
+    disp(time);
+    for depth = 2:dz:h-1 
+        matrix(depth,actual_time+1) = matrix(depth,actual_time) + Kappa * (dt/dz^2)*(matrix(depth+1,actual_time) - 2*matrix(depth,actual_time) + matrix(depth-1,actual_time));
     end
+	actual_time = actual_time+1;
 end
-toc
 
-figure
-hold on
-for x = 1:48 
-    scatter(x,matrix(x+1,x))
-    x1 = [0,x,x+1,0];
-    y1 = [matrix(x+2,x+1),matrix(x+2,x+1),matrix(x+1,x),matrix(x+1,x)];
-    patch(x1,y1,256*pi/matrix(x+1,x),'edgecolor', 'none');
+selected = matrix(:,1:11);
+
+for i = 1:11
+    figure
+    plot(selected(:,i))
+    F(i) = getframe(gcf)
 end
+figure
+movie(F)
+
+
+ 
+% for x = 1:48  
+%     hold on
+%     scatter(x,matrix(x+1,x))
+% 	x1 = [0,x,x+1,0];
+% 	y1 = [matrix(x+1,x),matrix(x+1,x),matrix(x+2,x+1),matrix(x+2,x+1)];
+% 	patch(x1,y1,256*pi/matrix(x+1,x),'edgecolor', 'none');
+% end
+
 
 
 % matrix = ones(h, t);
