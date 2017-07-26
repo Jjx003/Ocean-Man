@@ -11,38 +11,55 @@
 
 
 c0 = 50;
-h = 50;
-dt = 100;
-t = 1000; % (100*10) since dt is 100, 10 steps is nice
+h = 25;
+
 dz = 1;
-Kappa = 1E-3; % idk ? (m/s)
+Kappa = 1E-3; % idk ? (m^2/s)
+t = (h^2)/Kappa; % (100*10) since dt is 100, 10 steps is nice
+dt = .5*(dz^2)/Kappa-20;
 
 % boundary conditions?
 matrix = ones(h,t);
 matrix = ones(h, t);
 matrix(:,1) = c0;
 matrix(h,:) = 0;
-matrix(1,:) = 1;
+matrix(1,:) = 1;   
 
 actual_time = 1;
-%actual_depth = 1; %dz = 1 right now, don't need yet
+
+indicies = t/dt;
+
 for time = 1:dt:t-1
-    disp(time);
+    actual_depth = 1;
     for depth = 2:dz:h-1 
-        matrix(depth,actual_time+1) = matrix(depth,actual_time) + Kappa * (dt/dz^2)*(matrix(depth+1,actual_time) - 2*matrix(depth,actual_time) + matrix(depth-1,actual_time));
+        actual_depth = actual_depth + 1;
+    	matrix(actual_depth,actual_time+1) = matrix(actual_depth,actual_time)...
+        + Kappa * (dt/dz^2)*(matrix(actual_depth+1,actual_time) - 2*matrix(actual_depth,actual_time) + matrix(actual_depth-1,actual_time));
     end
 	actual_time = actual_time+1;
 end
 
-selected = matrix(:,1:11);
 
-for i = 1:11
-    figure
-    plot(selected(:,i))
-    F(i) = getframe(gcf)
+
+selected = matrix(:,1:indicies);
+axis tight
+set(gca,'nextplot','replacechildren');
+%vidObj = VideoWriter('peaks.avi');
+%open(vidObj);
+
+for i = 1:indicies
+    plot(selected(:,i));
+    F(i) = getframe(gcf);
+    %writeVideo(vidObj,F(i));
 end
+
+disp('aaaaaa');
+
+%close(vidObj);
+
 figure
-movie(F)
+movie(F,2)
+close all;
 
 
  
