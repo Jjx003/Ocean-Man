@@ -59,6 +59,8 @@ ctd_cond_size = max(info.Variables(6).Size);
 ctd_salt_size = max(info.Variables(7).Size);
 ctd_trans_size = max(info.Variables(8).Size);
 ctd_fluor_size = max(info.Variables(9).Size);
+ % I just realized that these all should have the same sizes, except for the lons and lats
+% I'm keepin things as is anyway, however
 
 for i = 1:length(ctds)
     info = ncinfo(ctds{i});
@@ -73,6 +75,8 @@ for i = 1:length(ctds)
     ctd_fluor_size = ctd_fluor_size + max(info.Variables(9).Size);
 end
 
+ctd_cast_size = ctd_fluor_size;
+
 ctd_time = zeros(1,ctd_time_size);
 ctd_lat = zeros(1,ctd_lat_size);
 ctd_lon = zeros(1,ctd_lon_size);
@@ -82,44 +86,48 @@ ctd_cond = zeros(1,ctd_cond_size);
 ctd_salt = zeros(1,ctd_salt_size);
 ctd_trans = zeros(1,ctd_trans_size);
 ctd_fluor = zeros(1,ctd_fluor_size);
+ctd_cast = cell(1,ctd_cast_size);
 
 last1 = 0;last2 = 0;last3 = 0;last4 = 0;last5 = 0;last6 = 0;last7 = 0;last8 = 0;last9 = 0;
 
-a = ncread(ctd_1, 'time');
+a = ncread(ctds_1, 'time');
 last1 = length(a);
 ctd_time(1:last1) = a;
 
-b = ncread(ctd_1, 'lat');
+b = ncread(ctds_1, 'lat');
 last2 = length(b);
 ctd_lat(1:last2) = b;
 
-c = ncread(ctd_1, 'lon');
+c = ncread(ctds_1, 'lon');
 last3 = length(c);
 ctd_lon(1:last3) = c;
 
-d = squeeze(ncread(ctd_1, 'ctd_press'));
+d = squeeze(ncread(ctds_1, 'ctd_press'));
 last4 = length(d);
 ctd_press(1:last4) = d;
 
-e = squeeze(ncread(ctd_1, 'ctd_temp'));
+e = squeeze(ncread(ctds_1, 'ctd_temp'));
 last5 = length(e);
 ctd_temp(1:last5) = e;
 
-f = squeeze(ncread(ctd_1, 'ctd_cond'));
+f = squeeze(ncread(ctds_1, 'ctd_cond'));
 last6 = length(f);
 ctd_cond(1:last6) = f;
 
-g = squeeze(ncread(ctd_1, 'ctd_sal'));
+g = squeeze(ncread(ctds_1, 'ctd_sal'));
 last7 = length(g);
 ctd_salt(1:last7) = g;
 
-h = squeeze(ncread(ctd_1, 'trans'));
+h = squeeze(ncread(ctds_1, 'trans'));
 last8 = length(h);
 ctd_trans(1:last8) = h;
 
-I = squeeze(ncread(ctd_1, 'fluoro'));
+I = squeeze(ncread(ctds_1, 'fluoro'));
 last9 = length(I);
 ctd_fluor(1:last9) = I;
+
+ctd_cast(1:last9) = {'mooring2001'};
+
 
 %last# corresponds to certain indicies where the last ctd left off
 %asd = max(info.Variables(3).Size);
@@ -171,15 +179,21 @@ for i = 1:length(ctds)
     I = squeeze(ncread(file_name, 'fluor'));
     newl9 = last9 + length(I);
     ctd_fluor(last9+1:newl9) = I;
-    last9 = newl9;
     
+    
+    j = regexp(file_name,'mooring_(\d+)_ctd.nc','tokens');
+    j = ['mooring',char(j{:})];
+    ctd_cast(last9+1:newl9) = {j};
+    last9 = newl9;
 end
+
+ctd_cast = char(ctd_cast);
 
 
 % ctd: ctd_press, lon, lat, time, ctd_cond, ctd_sal, trans, fluoro,
 %   ctd_temp
 
-SMBO_CTD = struct('time',ctd_time,'lon',ctd_lon,'lat',ctd_lat,'press',ctd_press,...
+SMBO_CTD = struct('cast',ctd_cast,'time',ctd_time,'lon',ctd_lon,'lat',ctd_lat,'press',ctd_press,...
 'temp',ctd_temp,'cond',ctd_cond,'salt',ctd_salt,'trans',ctd_trans,...
 'fluor',ctd_fluor);
 
