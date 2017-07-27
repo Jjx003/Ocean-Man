@@ -3,30 +3,22 @@ Output = CalculateData(SMBO,[load('KDS_20170524T090147.txt');load('KDS_20170524T
 
 %Converted = nanmean_smooth(Output,'speed',1);
 
-
-
-
 min_lon = -118.440;
 max_lon = -118.410;
 min_lat = 33.750;
 max_lat = 33.770;
 
-
-
 % Play around with 2nd and 3rd arguments 
-
-
 step = .5*(3600*24)^-1;
 good_indicies = find((Output.lons>=min_lon & Output.lons<=max_lon) & (Output.lats>=min_lat & Output.lats<=max_lat));
 speed = Output.speed(good_indicies);
 
-r = @(min)1/explike(6,Output.pCO2_1(cell2mat(DetermineStall(speed,1.5,min))));
-min_indicies = fminbnd(r,5,400);
-disp('done')
-Stalls = DetermineStall(Output.speed,1,min_indicies);
+%r = @(min)1/explike(6,Output.pCO2_1(cell2mat(DetermineStall(speed,1.5,min))));
+%min_indicies = fminbnd(@(x) test(x,speed,Output),5,140);
+
+Stalls = DetermineStall(Output.speed,.5,20);
 
 pCO2 = Output.pCO2_1;
-
 
 
 % Stalls = DetermineStall(Output.speed,1.5,156);
@@ -65,6 +57,16 @@ for i = 1:length(Stalls)
     %plot(smooth);
     plot(pCO2(indicies));
 end
+
+% function likely = test(x,speed,Output)
+%     sum = 0;
+%     data = DetermineStall(speed,10,x);
+%     for i = length(data)
+%         [~,a] = explike(pi,Output.pCO2_1(data{i}));
+%         sum = sum + a;
+%     end
+%     likely = 1/mean(sum);
+% end
 
 
 function obj = nanmean_smooth(obj, prop, wsize)
