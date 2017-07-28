@@ -86,6 +86,15 @@ for i = 1:length(ctds)
     cast_name = ['mooring',char(cast_name{:})];
     SMBO_CTDS.(cast_name) = struct('time',a,'lat',b,'lon',c,'press',d,...
     'temp',e,'cond',f,'salt',g,'trans',h,'fluor',I);
+
+    names = fieldnames(SMBO_CTDS.(cast_name));
+    for i2 = 1:length(names)
+        n = char(names{i2});
+        val = SMBO_CTDS.(cast_name).(n);
+        siz = length(val);
+        nccreate([cast_name,'.nc'],n,'Dimensions',{n,siz},'FillValue',NaN);
+        ncwrite([cast_name,'.nc'],n,val);
+    end
 end
 %% CO2 Data 
 %%% =======================================================================
@@ -152,6 +161,49 @@ SMBO_CO2_2002 = struct('time',time_datenum,'water',water,'air',air,...
 press,'trans',trans,'fluor',fluor,'air_temp',air_temp,'bpress',bpress,...
 'wind_speed',wind_speed,'wind_direction',wind_direction,'windu',windu,...
 'windv',windv);
+
+names = fieldnames(SMBO_CO2_2002);
+for i2 = 1:length(names)
+    n = char(names{i2});
+    val = SMBO_CO2_2002.(n);
+    siz = length(val);
+    nccreate('SMBO_CO2_2002.nc',n,'Dimensions',{n,siz},'FillValue',NaN);
+    ncwrite('SMBO_CO2_2002.nc',n,val);
+end
+
+% nccreate('test.nc','time','Dimensions',{'time',1531},'FillValue',NaN);
+% ncwrite('test.nc','time',time_datenum);
+% nccreate('test.nc','water','Dimensions',{'water', 1531},'FillValue',NaN);
+% ncwrite('test.nc','water',water);
+% nccreate('test.nc','air','Dimensions',{'air', 1531},'FillValue',NaN);
+% ncwrite('test.nc','air',air);
+% nccreate('test.nc','dpCO2','Dimensions',{'dpCO2', 1531},'FillValue',NaN);
+% ncwrite('test.nc','dpCO2',dpCO2);
+% nccreate('test.nc','omega_oxygen','Dimensions',{'omega_oxygen', 1531},'FillValue',NaN);
+% ncwrite('test.nc','omega_oxygen',omega_oxygen);
+% nccreate('test.nc','sst','Dimensions',{'sst', 1531},'FillValue',NaN);
+% ncwrite('test.nc','sst',sst);
+% nccreate('test.nc','salt','Dimensions',{'salt', 1531},'FillValue',NaN);
+% ncwrite('test.nc','salt',salt);
+% nccreate('test.nc','press','Dimensions',{'press', 1531},'FillValue',NaN);
+% ncwrite('test.nc','press',press);
+% nccreate('test.nc','trans','Dimensions',{'trans', 1531},'FillValue',NaN);
+% ncwrite('test.nc','trans',trans);
+% nccreate('test.nc','fluor','Dimensions',{'fluor', 1531},'FillValue',NaN);
+% ncwrite('test.nc','fluor',fluor);
+% nccreate('test.nc','air_temp','Dimensions',{'air_temp', 1531},'FillValue',NaN);
+% ncwrite('test.nc','air_temp',air_temp);
+% nccreate('test.nc','bpress','Dimensions',{'bpress', 1531},'FillValue',NaN);
+% ncwrite('test.nc','bpress',bpress);
+% nccreate('test.nc','wind_speed','Dimensions',{'wind_speed', 1531},'FillValue',NaN);
+% ncwrite('test.nc','wind_speed',wind_speed);
+% nccreate('test.nc','wind_direction','Dimensions',{'wind_direction', 1531},'FillValue',NaN);
+% ncwrite('test.nc','wind_direction',wind_direction);
+% nccreate('test.nc','windu','Dimensions',{'windu', 1531},'FillValue',NaN);
+% ncwrite('test.nc','windu',windu);
+% nccreate('test.nc','windv','Dimensions',{'windv', 1531},'FillValue',NaN);
+% ncwrite('test.nc','windv',windv);
+
 %% 
 
 
