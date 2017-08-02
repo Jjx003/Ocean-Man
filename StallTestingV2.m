@@ -49,7 +49,7 @@ Slim = (max_lat + min_lat)/2 - LatRange*RangeFactor/2;%South limit for plotting
 Elim = (max_lon + min_lon)/2 + LonRange*RangeFactor/2;%East limit for plotting
 Wlim = (max_lon + min_lon)/2 - LonRange*RangeFactor/2;%West limit for plotting
 
-clon = []; clat = []; ctime = []; c = []; cspeed = [];
+clon = []; clat = []; ctime = []; c = []; cspeed = []; ctemp = [];
 
 for i = 1:length(CO2Segs) 
     name = CO2Segs(i).name;
@@ -63,11 +63,12 @@ for i = 1:length(CO2Segs)
     CO2Segs(i).itime = time(Valid);
     CO2Segs(i).speed = speed(Valid);
     %-------------------------------
-    cspeed = speed(Valid);
+    cspeed = [cspeed, speed(Valid)'];
     clon = [clon, lon(Valid)'];
     clat = [clat, lat(Valid)'];
     ctime = [ctime, (CO2Segs(i).itime)'];
     c = [c, (CO2Segs(i).CO2i)'];
+    ctemp = [ctemp, temp(Valid)'];
 end
 
 if isnan(CO2_Min)
@@ -89,15 +90,11 @@ for i=wsiz:nv-wsiz
 end
 cspeed(cspeed==0) = nan;
 
-% Smooth out the calculated co2 values
+% Smooth out the calculated co2 values (very noisy)
 windowSize = 5; 
 b = (1/windowSize)*ones(1,windowSize);
 a = 1;
 c = filter(b,a,c);
-
-
-
-
 
 
 % Now we will try and find indexes at which the boat was moving slowly
@@ -113,8 +110,9 @@ for i = 1:length(Stalls)
     clons = clon(index);
     clats = clat(index);
     cs = c(index);
+    ct = ctemp(index);
     
-    mesh([clons(:) clons(:)], [clats(:) clats(:)], [cs(:) cs(:)], ...
+    mesh([clons(:) clons(:)], [clats(:) clats(:)], [ct(:) ct(:)], ...
      'EdgeColor', 'interp', 'FaceColor', 'none','LineWidth',2.5);view(2);
     hold on
 end
@@ -142,7 +140,6 @@ for i = 1:length(Stalls)
 end
 
 
-
 % This is a set of x-points that I believed showed an exponential
 % relationship with its corresponding CO2 values - let's plot them!
 list = {
@@ -167,3 +164,32 @@ for i = 1:length(list)
     assignin('base',['data' int2str(i)],c(indice));
     plot(c(indice))
 end
+
+coordinates = [
+    33.762902, -118.423319;
+    33.760601, -118.421461;
+    33.758322, -118.419645;
+    33.7560950, -118.4177390;
+    33.761688, -118.42448;
+    33.759372, -118.422666;
+    33.75707, -118.42085;
+    33.754762, -118.419041;
+];
+
+markers = {};
+
+for i = 1:length(coordinates)
+    mymarker = marker;
+    mymarker.latitude = coordinates(i,1);
+    mymarker.longitude = coordinates(i,2);
+    mymarker.radius = .1;
+    markers{i} = mymarker;
+end
+
+good = DetermineStalls3(clon, clat, markers);
+flons = good(:,1);
+flats = good(:,2);
+figure
+scatter(flons,flats)
+
+    

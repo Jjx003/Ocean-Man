@@ -1,0 +1,55 @@
+function Stalls =  DetermineStalls3(lons, lats, markers, varargin)
+    extra = 1.01;
+    deg2rad = pi/180;
+    good = {};
+    assert(size(lons)==size(lats), 'lon and lats must correspond in size');
+    
+    count = 0;
+        
+    if ~isempty(varargin) 
+        min_indices = varargin{1};
+        max_speed = varargin{2};
+    else
+        min_indices = 10;
+        max_speed = 5; 
+    end
+
+    
+    for i = 1:length(markers)
+        point = markers{i};
+        alon = point.longitude;
+        alat = point.latitude;
+        arad = point.radius;
+        filter = ((alon-arad)*extra <= lons & (alon+arad)*extra >= lons) & ...
+        ((alat-arad)*extra <= lats & (alat+arad)*extra >= lats);
+        flons = lons(filter);
+        flats = lats(filter);
+        for i2 = 1,length(flons) 
+            
+            R = 6371; %more accurate
+            lat1 = alat;
+            lat2 = flats(i2);
+            long1 = alon;
+            long2 = flons(i2);
+            delta_lat = deg2rad(lat2-lat1);
+            delta_long = deg2rad(long2-long1);
+            lat2 = deg2rad(lat2);
+            lat1 = deg2rad(lat1);
+            a = sin(delta_lat/2)^2 + cos(lat1) * cos(lat2) * sin(delta_long/2)^2;
+            distance = 2 * R * atan2(sqrt(a), sqrt(1-a));
+            
+            if d <= arad 
+                count = count+1;
+                good{count} = struct('lon',flons(i2),'lat',flats(i2));
+            end
+        end
+    end
+    
+    len = x;
+    lonsr = lons * pi/180; % degrees to radians
+    latsr = lats * pi/180;
+
+    dx = cos(latsr(2:len)) .* (lonsr(2:len) - lonsr(1:len-1));  
+    dy = latsr(2:len)-latsr(1:len-1);
+    ds = 6.371E3 * sqrt(dx.^2 + dy.^2);  % in km
+    dt = (date_num(2:len) - date_num(1:len-1)) * 3600 * 24;
