@@ -1,16 +1,15 @@
-clear all
-clc
+
 
 %% Inputs
-saveplots = 1;
+saveplots = 0;
 UTC2local = -7.0; %UTC to local time conversion [hr]
-SurfSampFolder = 'D:\Research\ObservationalWork\Cruises\5-24-2017\SurfSamp\';
+SurfSampFolder = '/home/jeffxy/Documents/rectdandco2/Surf/';
 FluOffset = 46;%(Jan 2016 calibration) Flurometer voltage offset [mV]
 FluSF = 0.006;%(Jan 2016 calibration) Flurometer Scale Factor [ml/m^3 Chl / mV]
-CO2Folder = 'D:\Research\ObservationalWork\Cruises\5-24-2017\CO2\';
+CO2Folder = '/home/jeffxy/Documents/rectdandco2/CO2/';
 CO2CompTimeLag = 0; %#hours the computer is behind local time.
 TimeDiffTresh = 5; %[sec] max time difference between gps time and co2 time. If the minimal time difference is larger than the treshold, the co2 data point is dicarded
-%Input name of each segment (seg) file
+%Input D:\Research\ObservationalWork\Cruises\5-24-2017name of each segment (seg) file
 % seg(1).name = 'KDS_20150427T104324.txt';
 % seg(2).name = 'KDS_20150427T113908.txt';
 
@@ -105,7 +104,7 @@ Elim = (max(lon) + min(lon))/2 + LonRange*RangeFactor/2;%East limit for plotting
 Wlim = (max(lon) + min(lon))/2 - LonRange*RangeFactor/2;%West limit for plotting
 
 %Position and time plot
-fh = figure;plot(clon,clat,'k');
+fh = figure;plot(lon,lat,'k');
 for i=1:length(seg)
     hold on;
     mesh([seg(i).lon(:) seg(i).lon(:)], [seg(i).lat(:) seg(i).lat(:)], [24*seg(i).time(:) 24*seg(i).time(:)], ...
@@ -126,7 +125,7 @@ end
 if isnan(Tem_Max)
     Tem_Max = max(tem);
 end
-fh = figure;plot(clon,clat,'k');
+fh = figure;plot(lon,lat,'k');
 for i=1:length(seg)
     hold on;
     mesh([seg(i).lon(:) seg(i).lon(:)], [seg(i).lat(:) seg(i).lat(:)], [seg(i).tem(:) seg(i).tem(:)], ...
@@ -147,7 +146,7 @@ end
 if isnan(Sal_Max)
     Sal_Max = max(sal);
 end
-fh = figure;plot(clon,clat,'k');
+fh = figure;plot(lon,lat,'k');
 for i=1:length(seg)
     hold on;
     mesh([seg(i).lon(:) seg(i).lon(:)], [seg(i).lat(:) seg(i).lat(:)], [seg(i).sal(:) seg(i).sal(:)], ...
@@ -167,7 +166,7 @@ end
 if isnan(Chl_Max)
     Chl_Max = max(Chl);
 end
-fh = figure;plot(clon,clat,'k');
+fh = figure;plot(lon,lat,'k');
 for i=1:length(seg)
     hold on;
     mesh([seg(i).lon(:) seg(i).lon(:)], [seg(i).lat(:) seg(i).lat(:)], [seg(i).Chl(:) seg(i).Chl(:)], ...
@@ -188,6 +187,7 @@ CO2segs = dir(strcat(CO2Folder,'*.txt'));
 
 %% Create Vars
 CO2 = []; CO2lat = []; CO2lon = []; CO2time = [];
+time
 for i=1:length(CO2segs)
     name = strcat(CO2Folder,CO2segs(i).name);
     [CO2segs(i).time,CO2segs(i).CO2] = CO2_Reader(name,CO2CompTimeLag);
@@ -219,9 +219,10 @@ end
 if isnan(CO2_Max) 
     CO2_Max = max(CO2);
 end
-fh = figure;plot(clon,clat,'k');
+fh = figure;plot(lon,lat,'k');
 for i=1:length(CO2segs)
     hold on;
+    [CO2segs(i).CO2i(:) CO2segs(i).CO2i(:)]
     mesh([CO2segs(i).loni(:) CO2segs(i).loni(:)], [CO2segs(i).lati(:) CO2segs(i).lati(:)], [CO2segs(i).CO2i(:) CO2segs(i).CO2i(:)], ...
     'EdgeColor', 'interp', 'FaceColor', 'none','LineWidth',2.5);view(2);
 end
@@ -233,7 +234,7 @@ if saveplots==1
     saveas(fh,strcat(figfn,'.fig'));
 end
 
-fh = figure;plot(clon,clat,'k');
+fh = figure;plot(lon,lat,'k');
 for i=1:length(CO2segs)
     hold on;
     mesh([CO2segs(i).loni(:) CO2segs(i).loni(:)], [CO2segs(i).lati(:) CO2segs(i).lati(:)], [24*CO2segs(i).timei(:) 24*CO2segs(i).timei(:)], ...
@@ -298,7 +299,7 @@ if AnalyzeRange==1
     fh = figure; mesh([lon2(:) lon2(:)], [lat2(:) lat2(:)], [24*time2(:) 24*time2(:)], ...
         'EdgeColor', 'interp', 'FaceColor', 'none','LineWidth',2.5);view(2);
     xlim([Wlim Elim]);ylim([Slim Nlim]);colorbar;colormap(jet(256));
-    hold on;plot(clon,clat,'k');xlabel('longitude [^{\circ}]');ylabel('latitude [^{\circ}]');hold off;
+    hold on;plot(lon,lat,'k');xlabel('longitude [^{\circ}]');ylabel('latitude [^{\circ}]');hold off;
     title('Position and hour of day');
     if saveplots==1
         figfn = strcat(SurfSampFolder,'FocTimeTraj');
@@ -309,7 +310,7 @@ if AnalyzeRange==1
     fh = figure; mesh([lon2(:) lon2(:)], [lat2(:) lat2(:)], [tem2(:) tem2(:)], ...
         'EdgeColor', 'interp', 'FaceColor', 'none','LineWidth',2.5);view(2);
     xlim([Wlim Elim]);ylim([Slim Nlim]);colorbar;colormap(jet(256));
-    hold on;plot(clon,clat,'k');xlabel('longitude [^{\circ}]');ylabel('latitude [^{\circ}]');hold off;
+    hold on;plot(lon,lat,'k');xlabel('longitude [^{\circ}]');ylabel('latitude [^{\circ}]');hold off;
     title('Surface Temperature [C]');
     if saveplots==1
         figfn = strcat(SurfSampFolder,'FocTemperatureTraj');
@@ -320,14 +321,14 @@ if AnalyzeRange==1
     fh = figure; mesh([lon2(:) lon2(:)], [lat2(:) lat2(:)], [sal2(:) sal2(:)], ...
         'EdgeColor', 'interp', 'FaceColor', 'none','LineWidth',2.5);view(2);
     xlim([Wlim Elim]);ylim([Slim Nlim]);caxis([Sal_Min,Sal_Max]);colorbar;colormap(jet(256));
-    hold on;plot(clon,clat,'k');xlabel('longitude [^{\circ}]');ylabel('latitude [^{\circ}]');hold off;
+    hold on;plot(lon,lat,'k');xlabel('longitude [^{\circ}]');ylabel('latitude [^{\circ}]');hold off;
     title('Surface Salinity [psu]');
     if saveplots==1
         figfn = strcat(SurfSampFolder,'FocSalinityTraj');
         print(fh,figfn,'-dpng','-r0');
         saveas(fh,strcat(figfn,'.fig'));
     end
-    fh = figure;plot(clon,clat,'k');
+    fh = figure;plot(lon,lat,'k');
     mesh([CO2lon(:) CO2lon(:)], [CO2lat(:) CO2lat(:)], [CO2(:) CO2(:)], ...
         'EdgeColor', 'interp', 'FaceColor', 'none','LineWidth',2.5);view(2);
     for i=1:length(CO2segs)
