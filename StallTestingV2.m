@@ -1,3 +1,15 @@
+% The rate is dependent on temperature
+% and salinity, and to a much lesser degree, pressure.
+% The membrane effect can be described using the Laws of Diffusion, whereby the
+% diffusion coefficient of the semi-permeable membrane is a function of the gas solubility
+% coefficient in the membrane, and the permeability of that gas through the membrane.
+% The thickness of the membrane also plays a crucial role in the time for equilibration.
+% Temperature and salinity can dramatically affect the diffusion through a membrane.
+
+% In all cases, warmer temperatures improve the
+% response time of the instruments, while cooler waters 
+
+
 addpath rectdandco2
 addpath rectdandco2/Surf
 addpath rectdandco2/CO2
@@ -49,7 +61,7 @@ Slim = (max_lat + min_lat)/2 - LatRange*RangeFactor/2;%South limit for plotting
 Elim = (max_lon + min_lon)/2 + LonRange*RangeFactor/2;%East limit for plotting
 Wlim = (max_lon + min_lon)/2 - LonRange*RangeFactor/2;%West limit for plotting
 
-clon = []; clat = []; ctime = []; c = []; cspeed = []; ctemp = [];
+zlon = []; zlat = []; ztime = []; c = []; zspeed = []; ztemp = [];
 
 for i = 1:length(CO2Segs) 
     name = CO2Segs(i).name;
@@ -63,12 +75,12 @@ for i = 1:length(CO2Segs)
     CO2Segs(i).itime = time(Valid);
     CO2Segs(i).speed = speed(Valid);
     %-------------------------------
-    cspeed = [cspeed, speed(Valid)'];
-    clon = [clon, lon(Valid)'];
-    clat = [clat, lat(Valid)'];
-    ctime = [ctime, (CO2Segs(i).itime)'];
+    zspeed = [zspeed, speed(Valid)'];
+    zlon = [zlon, lon(Valid)'];
+    zlat = [zlat, lat(Valid)'];
+    ztime = [ztime, (CO2Segs(i).itime)'];
     c = [c, (CO2Segs(i).CO2i)'];
-    ctemp = [ctemp, temp(Valid)'];
+    ztemp = [ztemp, temp(Valid)'];
 end
 
 if isnan(CO2_Min)
@@ -80,17 +92,17 @@ end
 
 % Smooth out the calculated speeds
 % Including this seems to make the results look a lot better
-nv = size(cspeed,1);
+nv = size(zspeed,1);
 wsiz = 3;
 sh = (wsiz-1)/2;
-cspeed0 = cspeed;
+cspeed0 = zspeed;
 
 for i=wsiz:nv-wsiz
-    cspeed(i) = nanmean(cspeed(i-sh:i+sh));
+    zspeed(i) = nanmean(zspeed(i-sh:i+sh));
 end
-cspeed(cspeed==0) = nan;
+zspeed(zspeed==0) = nan;
 
-% Smooth out the calculated co2 values (very noisy)
+%Smooth out the calculated co2 values (very noisy)
 windowSize = 5; 
 b = (1/windowSize)*ones(1,windowSize);
 a = 1;
@@ -98,7 +110,7 @@ c = filter(b,a,c);
 
 
 % Now we will try and find indexes at which the boat was moving slowly
-Stalls = DetermineStall(cspeed,3,20);
+Stalls = DetermineStall(zspeed,8,20);
 
 
 % Lets plot all the stallin points 
@@ -107,12 +119,11 @@ for i = 1:length(Stalls)
     index = Stalls{i};
     %plot(c(index));
     %plot(clon(index),clat(index));
-    clons = clon(index);
-    clats = clat(index);
+    clons = zlon(index);
+    clats = zlat(index);
     cs = c(index);
-    ct = ctemp(index);
     
-    mesh([clons(:) clons(:)], [clats(:) clats(:)], [ct(:) ct(:)], ...
+    mesh([clons(:) clons(:)], [clats(:) clats(:)], [cs(:) cs(:)], ...
      'EdgeColor', 'interp', 'FaceColor', 'none','LineWidth',2.5);view(2);
     hold on
 end
@@ -122,22 +133,24 @@ hold off;
 
 % Same graph, different colors
 figure
-plot(clon,clat,'k','LineWidth',1.5); % for the original route in black
+plot(zlon,zlat,'k','LineWidth',1.5); % for the original route in black
 hold on
 for i = 1:length(Stalls) 
     index = Stalls{i};
     %plot(c(index));
-    plot(clon(index),clat(index),'LineWidth',3); % the stalling routes will vary in color
+    plot(zlon(index),zlat(index),'LineWidth',3); % the stalling routes will vary in color
     hold on
 end
 caxis([CO2_Min,CO2_Max]);colorbar;colormap(jet(256));grid on;
 hold off
 
 
-for i = 1:length(Stalls) 
-    index = Stalls{i};
-    plot(c(index));
-end
+figure
+mesh([zlon(:) zlon(:)], [zlat(:) zlat(:)], [c(:) c(:)], ...
+'EdgeColor', 'interp', 'FaceColor', 'none','LineWidth',2.5);view(2);
+caxis([CO2_Min,CO2_Max]);colorbar;colormap(jet(256));grid on;
+
+
 
 
 % This is a set of x-points that I believed showed an exponential
@@ -161,9 +174,11 @@ list = {
 for i = 1:length(list)
     figure
     indice = list{i};
-    assignin('base',['data' int2str(i)],c(indice));
+    %assignin('base',['data' int2str(i)],c(indice));
     plot(c(indice))
+    grid on
 end
+
 
 coordinates = [
     33.762902, -118.423319;
@@ -182,14 +197,41 @@ for i = 1:length(coordinates)
     mymarker = marker;
     mymarker.latitude = coordinates(i,1);
     mymarker.longitude = coordinates(i,2);
-    mymarker.radius = .1;
+    mymarker.radius = .1; % in km -> * 1000 m / km
     markers{i} = mymarker;
 end
 
-good = DetermineStalls3(clon, clat, markers);
-flons = good(:,1);
-flats = good(:,2);
+in = DetermineStalls3(zlon, zlat, ztime, c, markers);
 figure
-scatter(flons,flats)
+for i = 1:length(in)
+    set = in{i};
+    flons = set(:,1);
+    flats = set(:,2);
+    ftimes = set(:,3);
+    co2 = set(:,4);
+    mint = min(ftimes);
+    bad = (ftimes-mint) >= 2000/(3600*24); % this sets it ~2000 seconds allowed
+    flons(bad) = [];
+    flats(bad) = [];
+    co2(bad) = [];
+    plot(co2)
+    hold on
+end
 
-    
+for i = 1:length(in)
+    set = in{i};
+    flons = set(:,1);
+    flats = set(:,2);
+    ftimes = set(:,3);
+    co2 = set(:,4);
+    mint = min(ftimes);
+    bad = (ftimes-mint) >= 2000/(3600*24); % this sets it ~2000 seconds allowed
+    flons(bad) = [];
+    flats(bad) = [];
+    co2(bad) = [];
+    figure
+    plot(co2)  
+end
+
+
+
