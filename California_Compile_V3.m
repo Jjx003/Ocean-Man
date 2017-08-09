@@ -37,23 +37,90 @@
 % Po4, SIO2, NO3, Chlorophyll/Fluorescence, Oxygen
 % lon, lat, time
 
+
+%% [SETTINGS]
+output = 'SCali.nc';
+
+addpath('rectdandco2');
+addpath('rectdandco2/CO2');
+addpath('rectdandco2/Surf');
+addpath('SMBO');
+
+% CO2 Zodiac settings
+CO2CompTimeLag = (40) / 3600 ; % 40 seconds delay  
+% (supposed to be closeto two minutes)
+CO2Folder = '/home/jeffxy/Documents/rectdandco2/CO2/'; % adjust accordingly
+CO2Segs = dir([CO2Folder '*.txt']);
+
+min_lon = -118.430;
+max_lon = -118.418;
+min_lat = 33.754;
+max_lat = 33.766;
+
+% Range of plots:
+LatRange = max_lat - min_lat;
+LonRange = max_lon - min_lon; 
+
+%The next implementation assures that the plot axes are of approximately
+%the same cartesian distance, to minimize distortion.
+if LonRange <= LatRange/cos(mean(lat)*pi/180)
+    LonRange = LatRange/cos(mean(lat)*pi/180);
+else 
+    LatRange = LonRange*cos(nanmean(lat)*pi/180);
+end
+
+Nlim = (max_lat + min_lat)/2 + LatRange*RangeFactor/2;%North limit for plotting
+Slim = (max_lat + min_lat)/2 - LatRange*RangeFactor/2;%South limit for plotting
+Elim = (max_lon + min_lon)/2 + LonRange*RangeFactor/2;%East limit for plotting
+Wlim = (max_lon + min_lon)/2 - LonRange*RangeFactor/2;%West limit for plotting
+
+zlon = []; zlat = []; ztime = []; c = []; zspeed = []; ztemp = [];
+
+
+
 %% [Zodiac] (pCO2)
 load('Zodiac.mat'); % zodiac
 
 location = 0;
 
-zdate = zodiac.date_num;
-zlength = length(zdate);
+zdate = Zodiac.date_num;
+
+% zdate = zdate;
+% zlon = zodiac.lons;
+% zlat = zodiac.lats;
+% %zpCO2 = zodiac.pCO2_1;
+% zsalt = zodiac.salts;
+% ztemp = zodiac.temps;
+% zfluor = zodiac.fluorescence;
+% pCO2 values from this set seem strange. I'm going to use the data set
+% from CO2_... .txt files
+
+flon = []; flat = []; fdate = []; fsalt = []; fc = []; ftemp = []; ffluor = [];
+
+for i = 1:length(CO2Segs) 
+    name = CO2Segs(i).name;
+    [CO2Segs(i).time,CO2Segs(i).date,CO2Segs(i).CO2] = CO2_Reader2(name,CO2CompTimeLag);
+    CO2i = interp1(CO2Segs(i).time/24/3600,CO2Segs(i).CO2,time);
+    Valid = (~isnan(CO2i));   
+    flon = [flon, Zodiac.lons(Valid)'];
+    flat = [flat, Zodiac.lats(Valid)'];
+    fdate = [fdate, zdate(Valid)'];
+    fsalt = [fsalt, Zodiac.salts(Valid)'];
+    fc = [fc, CO2i(Valid)'];
+    ftemp = [ftemp, Zodiac.temps(Valid)'];
+    ffluor = [ffluor, Zodiac.fluorescence(Valid)'];
+end
+
+zlength = length(fdate);
 i = 1:zlength;
 
-date(i) = zdate;
-lon(i) = zodiac.lons;
-lat(i) = zodiac.lats;
-pCO2(i) = zodiac.pCO2_1;
-salt(i) = zodiac.salts;
-temp(i) = zodiac.temps;
-fluor(i) = zodiac.fluorescence;
-
+date(i) = fdate;
+lon(i) = flon;
+lat(i) = flat;
+pCO2(i) = fc;
+salt(i) = fsalt;
+temp(i) = ftemp;
+fluor(i) = ffluor;
 
 % we don't have these values 
 pH(i) = NaN;
@@ -61,10 +128,12 @@ NO3(i) = NaN;
 PO4(i) = NaN;
 SIO2(i) = NaN;
 NH4(i) = NaN;
-set(i) = 'SMBO';
 % so put em as NaN
+set(i) = {'SMBO'};
 
 location = location + zlength;
+
+
 %% [SMBO 2003-2008] (pH,NO3,PO4,SIO2,NH4 w/o Calculated values)
 load('smbo_data.mat');
 
@@ -97,6 +166,12 @@ set(i) = 'Zodiac';
 % DIC, ALKALINITY, pH, pCO2, 
 % Po4, SIO2, NO3, Chlorophyll/Fluorescence, Oxygen
 % lon, lat, time
+vars = {'date','lon','lat','pCO2','salt','temp','pH','NO3','PO4','SIO2','NH4','set'};
 
-fname = 'Southern California Bight';
+for i = 1:length(vars) 
+    key = vars(i);
+    value = eval(key);
+    nccreate(output,key,'Dimensions',{key,size(value)},'FillValue',NaN);
+    ncwrite(output,key,value);
+end
 

@@ -9,7 +9,7 @@
 % In all cases, warmer temperatures improve the
 % response time of the instruments, while cooler waters 
 
-
+addpath ezyfit
 addpath rectdandco2
 addpath rectdandco2/Surf
 addpath rectdandco2/CO2
@@ -19,7 +19,7 @@ CO2Folder = '/home/jeffxy/Documents/rectdandco2/CO2/';
 Segs = dir([SurfFolder '*.txt']);
 CO2Segs = dir([CO2Folder '*.txt']);
 
-CO2CompTimeLag = 0; %#hours the computer is behind local time.
+CO2CompTimeLag = 40/3600; %#hours the computer is behind local time.
 TimeDiffTresh = 5; %[sec] max time difference between gps time and co2 time. If the minimal time difference is larger than the treshold, the co2 data point is dicarded
 RangeFactor = 1.5;%1.5;%1; %Factor for extended range (beyond measurements) of lat and lon in plots
 
@@ -90,17 +90,24 @@ if isnan(CO2_Max)
     CO2_Max = max(c);
 end
 
+windowSize = 3; 
+b = (1/windowSize)*ones(1,windowSize);
+a = 1;
+zspeed = filter(b,a,speed);
+
+
+
 % Smooth out the calculated speeds
 % Including this seems to make the results look a lot better
-nv = size(zspeed,1);
-wsiz = 3;
-sh = (wsiz-1)/2;
-cspeed0 = zspeed;
-
-for i=wsiz:nv-wsiz
-    zspeed(i) = nanmean(zspeed(i-sh:i+sh));
-end
-zspeed(zspeed==0) = nan;
+% nv = size(zspeed,1);
+% wsiz = 3;
+% sh = round((wsiz-1)/2);
+% cspeed0 = zspeed;
+% 
+% for i=wsiz:nv-wsiz
+%     zspeed(i) = nanmean(zspeed(i-sh:i+sh));
+% end
+% zspeed(zspeed==0) = nan;
 
 %Smooth out the calculated co2 values (very noisy)
 windowSize = 5; 
@@ -110,47 +117,45 @@ c = filter(b,a,c);
 
 
 % Now we will try and find indexes at which the boat was moving slowly
-Stalls = DetermineStall(zspeed,8,20);
+% Stalls = DetermineStall(zspeed,8,20);
 
 
 % Lets plot all the stallin points 
-figure
-for i = 1:length(Stalls) 
-    index = Stalls{i};
-    %plot(c(index));
-    %plot(clon(index),clat(index));
-    clons = zlon(index);
-    clats = zlat(index);
-    cs = c(index);
-    
-    mesh([clons(:) clons(:)], [clats(:) clats(:)], [cs(:) cs(:)], ...
-     'EdgeColor', 'interp', 'FaceColor', 'none','LineWidth',2.5);view(2);
-    hold on
-end
-caxis([CO2_Min,CO2_Max]);colorbar;colormap(jet(256));grid on;
-hold off;
-
-
-% Same graph, different colors
-figure
-plot(zlon,zlat,'k','LineWidth',1.5); % for the original route in black
-hold on
-for i = 1:length(Stalls) 
-    index = Stalls{i};
-    %plot(c(index));
-    plot(zlon(index),zlat(index),'LineWidth',3); % the stalling routes will vary in color
-    hold on
-end
-caxis([CO2_Min,CO2_Max]);colorbar;colormap(jet(256));grid on;
-hold off
+% figure
+% for i = 1:length(Stalls) 
+%     index = Stalls{i};
+%     %plot(c(index));
+%     %plot(clon(index),clat(index));
+%     clons = zlon(index);
+%     clats = zlat(index);
+%     cs = c(index);
+%     
+%     mesh([clons(:) clons(:)], [clats(:) clats(:)], [cs(:) cs(:)], ...
+%      'EdgeColor', 'interp', 'FaceColor', 'none','LineWidth',2.5);view(2);
+%     hold on
+% end
+% caxis([CO2_Min,CO2_Max]);colorbar;colormap(jet(256));grid on;
+% hold off;
+% 
+% 
+% % Same graph, different colors
+% figure
+% plot(zlon,zlat,'k','LineWidth',1.5); % for the original route in black
+% hold on
+% for i = 1:length(Stalls) 
+%     index = Stalls{i};
+%     %plot(c(index));
+%     plot(zlon(index),zlat(index),'LineWidth',3); % the stalling routes will vary in color
+%     hold on
+% end
+% caxis([CO2_Min,CO2_Max]);colorbar;colormap(jet(256));grid on;
+% hold off
 
 
 figure
 mesh([zlon(:) zlon(:)], [zlat(:) zlat(:)], [c(:) c(:)], ...
 'EdgeColor', 'interp', 'FaceColor', 'none','LineWidth',2.5);view(2);
 caxis([CO2_Min,CO2_Max]);colorbar;colormap(jet(256));grid on;
-
-
 
 
 % This is a set of x-points that I believed showed an exponential
@@ -176,6 +181,8 @@ for i = 1:length(list)
     indice = list{i};
     %assignin('base',['data' int2str(i)],c(indice));
     plot(c(indice))
+    srange = [int2str(indice(1)),'...',int2str(indice(length(indice)))];
+    title(srange);
     grid on
 end
 
@@ -201,19 +208,23 @@ for i = 1:length(coordinates)
     markers{i} = mymarker;
 end
 
-in = DetermineStalls3(zlon, zlat, ztime, c, markers);
+in = DetermineStalls3(zlon, zlat, zspeed, ztime, c, markers);
+
 figure
 for i = 1:length(in)
+    figure
     set = in{i};
     flons = set(:,1);
     flats = set(:,2);
-    ftimes = set(:,3);
-    co2 = set(:,4);
+    fspeed = set(:,3);
+    ftimes = set(:,4);
+    co2 = set(:,5);
     mint = min(ftimes);
     bad = (ftimes-mint) >= 2000/(3600*24); % this sets it ~2000 seconds allowed
     flons(bad) = [];
     flats(bad) = [];
     co2(bad) = [];
+    fspeed(bad) = [];
     plot(co2)
     hold on
 end
@@ -222,15 +233,23 @@ for i = 1:length(in)
     set = in{i};
     flons = set(:,1);
     flats = set(:,2);
-    ftimes = set(:,3);
-    co2 = set(:,4);
+    fspeed = set(:,3);
+    ftimes = set(:,4);
+    co2 = set(:,5);
     mint = min(ftimes);
     bad = (ftimes-mint) >= 2000/(3600*24); % this sets it ~2000 seconds allowed
     flons(bad) = [];
     flats(bad) = [];
+    fspeed(bad) = [];
     co2(bad) = [];
     figure
-    plot(co2)  
+    scale = 1:length(fspeed);
+    plotyy(scale,co2,scale,fspeed);
+    figure
+    mesh([flons(:) flons(:)], [flats(:) flats(:)], [co2(:) co2(:)], ...
+    'EdgeColor', 'interp', 'FaceColor', 'none','LineWidth',2.5);view(2);
+    caxis([CO2_Min,CO2_Max]);colorbar;colormap(jet(256));grid on;
+    
 end
 
 

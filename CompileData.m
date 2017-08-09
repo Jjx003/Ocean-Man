@@ -1,3 +1,6 @@
+% data = [load('KDS_20170524T090147.txt');load('KDS_20170524T103400.txt')];
+% CompileData(data, 1, 'Zodiac')
+
 function zodiac = CompileData(dataz, save_to_file, output_name)
 
     %%% [USAGE]: To Convert Raw Zodiac data into a structure format 
@@ -27,6 +30,8 @@ function zodiac = CompileData(dataz, save_to_file, output_name)
     %%%             cons? (cons) (not too sure what this is)
     %%%             fluorescence (flour)
     
+    UTC2local = -7.0; %UTC to local time conversion [hr]
+    
 
     % here we are preallocating some data 
     [x, ~] = size(dataz);
@@ -54,7 +59,7 @@ function zodiac = CompileData(dataz, save_to_file, output_name)
         mth = str2num(mydate2(3:4)); 
         y = str2num(mydate2(5:6))+2000;
         mydate3 = num2str(dataz(i,3));
-        h = str2num(mydate3(1:2)); 
+        h = str2num(mydate3(1:2))+UTC2local; % this part taken from aviv's coden
         m = str2num(mydate3(3:4)); 
         s = str2num(mydate3(5:6));
         date_num(i) = datenum(y,mth,d,h,m,s);
@@ -87,12 +92,12 @@ function zodiac = CompileData(dataz, save_to_file, output_name)
         end
     end
 
-    zodiac = struct('date_num',date_num,'lons',lons,'lats', ...
+    Zodiac = struct('date_num',date_num,'lons',lons,'lats', ...
     lats,'pCO2_1',pCO2_1,'pCO2_2',pCO2_2,'temps',temps,'salts',salts,...
     'depths',depths,'cons',cons,'fluorescence',flour,'dist',dist,'speed',speed);
 
     if save_to_file 
-        save([output_name '.mat'], 'zodiac');
-        save([output_name 'Named.mat'], 'date_num', 'lons', 'lats', 'pCO2_1', 'pCO2_2', 'temps', 'salts', 'depths', 'cons', 'flour', 'dist', 'speed');
+        save([output_name '.mat'], 'Zodiac');
+        save([output_name ' Named.mat'], 'date_num', 'lons', 'lats', 'pCO2_1', 'pCO2_2', 'temps', 'salts', 'depths', 'cons', 'flour', 'dist', 'speed');
     end
 
