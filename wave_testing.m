@@ -13,7 +13,6 @@ depth = 100;
 u = ones(ni,nc+1);
 zeta = zeros(ni,nc);
 %% CALCULATE %%
-
 for i = 1:nc
     zeta(1,i) = 2*exp(-i^2/nc)+sin(i*2)*5 ;    
 end
@@ -45,9 +44,7 @@ for t = 2:1:ni
         u(t, c) = -g*dt*(zeta(t-1, c)-zeta(t-1, c-1))/dx + u(t-1, c);
     end  
 end
-
 %% DRAW %%
-
 if save_to_file
     vidObj = VideoWriter('nice waves');
     open(vidObj);
@@ -69,7 +66,6 @@ else
     figure
     % x = 1:nc;
     % y = log(x.^2+1)*5.*exp(-x.^2/3000)+1;
-
     for i = 1:ni 
         plot(depth+interp(zeta(i,:),2));
         % hold on
