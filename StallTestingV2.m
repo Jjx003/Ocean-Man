@@ -9,6 +9,7 @@
 % In all cases, warmer temperatures improve the
 % response time of the instruments, while cooler waters 
 
+
 addpath ezyfit
 addpath rectdandco2
 addpath rectdandco2/Surf
@@ -90,10 +91,10 @@ if isnan(CO2_Max)
     CO2_Max = max(c);
 end
 
-windowSize = 3; 
-b = (1/windowSize)*ones(1,windowSize);
-a = 1;
-zspeed = filter(b,a,speed);
+% windowSize = 3; 
+% b = (1/windowSize)*ones(1,windowSize);
+% a = 1;
+% zspeed = filter(b,a,speed);
 
 
 
@@ -110,14 +111,14 @@ zspeed = filter(b,a,speed);
 % zspeed(zspeed==0) = nan;
 
 %Smooth out the calculated co2 values (very noisy)
-windowSize = 5; 
-b = (1/windowSize)*ones(1,windowSize);
-a = 1;
-c = filter(b,a,c);
+% windowSize = 5; 
+% b = (1/windowSize)*ones(1,windowSize);
+% a = 1;
+% c = filter(b,a,c);
 
 
 % Now we will try and find indexes at which the boat was moving slowly
-% Stalls = DetermineStall(zspeed,8,20);
+% Stalls = DetermineStall(zspeed,8,40);
 
 
 % Lets plot all the stallin points 
@@ -136,9 +137,9 @@ c = filter(b,a,c);
 % end
 % caxis([CO2_Min,CO2_Max]);colorbar;colormap(jet(256));grid on;
 % hold off;
-% 
-% 
-% % Same graph, different colors
+
+
+% Same graph, different colors
 % figure
 % plot(zlon,zlat,'k','LineWidth',1.5); % for the original route in black
 % hold on
@@ -150,41 +151,43 @@ c = filter(b,a,c);
 % end
 % caxis([CO2_Min,CO2_Max]);colorbar;colormap(jet(256));grid on;
 % hold off
+% 
 
-
-figure
-mesh([zlon(:) zlon(:)], [zlat(:) zlat(:)], [c(:) c(:)], ...
-'EdgeColor', 'interp', 'FaceColor', 'none','LineWidth',2.5);view(2);
-caxis([CO2_Min,CO2_Max]);colorbar;colormap(jet(256));grid on;
+% figure
+% mesh([zlon(:) zlon(:)], [zlat(:) zlat(:)], [c(:) c(:)], ...
+% 'EdgeColor', 'interp', 'FaceColor', 'none','LineWidth',2.5);view(2);
+% caxis([CO2_Min,CO2_Max]);colorbar;colormap(jet(256));grid on;
 
 
 % This is a set of x-points that I believed showed an exponential
 % relationship with its corresponding CO2 values - let's plot them!
-list = {
-    20:70
-    60:200
-    200:900
-    1100:1120
-    1230:1400
-    1400:1500
-    1525:1750
-    1780:1920
-    2060:2375
-    2380:2470
-    2680:6000
-    6400:6800
-    7200:7640
-};
-
-for i = 1:length(list)
-    figure
-    indice = list{i};
-    %assignin('base',['data' int2str(i)],c(indice));
-    plot(c(indice))
-    srange = [int2str(indice(1)),'...',int2str(indice(length(indice)))];
-    title(srange);
-    grid on
-end
+% list = {
+%     20:70
+%     60:200
+%     200:900
+%     1100:1120
+%     1230:1400
+%     1400:1500
+%     1525:1750
+%     1780:1920
+%     2060:2375
+%     2380:2470
+%     2680:6000
+%     6400:6800
+%     7200:7640
+% };
+% 
+% for i = 1:length(list)
+%     figure
+%     indice = list{i};
+%     %assignin('base',['data' int2str(i)],c(indice));
+%     plot(c(indice))
+%     srange = [int2str(indice(1)),'...',int2str(indice(length(indice)))];
+%     title(srange);
+%     xlabel('index position');
+%     ylabel('pCO2');
+%     grid on
+% end
 
 
 coordinates = [
@@ -209,7 +212,6 @@ for i = 1:length(coordinates)
 end
 
 in = DetermineStalls3(zlon, zlat, zspeed, ztime, c, markers);
-
 figure
 for i = 1:length(in)
     figure
@@ -229,6 +231,18 @@ for i = 1:length(in)
     hold on
 end
 
+% windowSize = 3; 
+% b = (1/windowSize)*ones(1,windowSize);
+% a = 1;
+% filtered_co2 = filter(b,a,co2);
+%     
+% windowSize = 3; 
+% b = (1/windowSize)*ones(1,windowSize);
+% a = 1;
+% filtered_speed = filter(b,a,speed);
+
+
+
 for i = 1:length(in)
     set = in{i};
     flons = set(:,1);
@@ -242,14 +256,24 @@ for i = 1:length(in)
     flats(bad) = [];
     fspeed(bad) = [];
     co2(bad) = [];
-    figure
-    scale = 1:length(fspeed);
-    plotyy(scale,co2,scale,fspeed);
-    figure
-    mesh([flons(:) flons(:)], [flats(:) flats(:)], [co2(:) co2(:)], ...
-    'EdgeColor', 'interp', 'FaceColor', 'none','LineWidth',2.5);view(2);
-    caxis([CO2_Min,CO2_Max]);colorbar;colormap(jet(256));grid on;
     
+    scale = 1:length(fspeed);
+    
+    hold on;
+    yyaxis left;
+    plot(scale,co2);
+    axes = gca; axes.YLabel.String = 'pCO2';
+    yyaxis right;
+    plot(scale,fspeed);
+    axes2 = gca; axes2.YLabel.String = 'Speed (m/s)';
+    
+    xlabel('Relative index');
+    title(['Coordinate# ' int2str(i)]);
+    
+    hold off;
+    
+
+     
 end
 
 

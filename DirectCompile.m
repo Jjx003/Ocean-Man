@@ -52,7 +52,7 @@ function [date_num,dist,speed,lons,lats,depths,temps,salts,cons,fluor] = DirectC
         delta_time = dt(i);
         dist(i+1) = current_distance + delta_distance; % distance in km, adding up
         if delta_distance == 0 || delta_time == 0 
-            speed(i+1) = 0; % we don't want any NaNs
+            speed(i+1) = speed(i-1) ; % we don't want any NaNs
         else
             speed(i+1) = delta_distance*1000/delta_time; % speed in m/s
         end
