@@ -1,67 +1,3 @@
-% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%                        USAGE
-% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%     Determines all data points within radii designated 
-%     by "markers" (custom structure)
-% 
-%     Each marker contains information on its longitude, 
-%     latitude, and radius.
-% 
-%     ~marker.m
-%     longitude
-%     latitude
-%     radius
-% 
-%     ex: 
-%         mymarker = marker;
-%         mymarker.longitude = 99;
-%         mymarker.latitude = 99;
-%         mymarker.radius = 99;
-%     -
-% 
-%     Note that the current return data is limited by 
-%     the input arguments.
-% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%                      ARGUMENTS
-% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%     [lons, lats, speed, time, pco2, temp] - 
-%         Raw provided values from dataset
-%         * Should all be the same length *
-% 
-%     [markers] -
-%         A cell containing all the designated markers.
-%         * See above example set up *
-% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%                       OUTPUT
-% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%     [Stalls] - 
-%         Size: (#markers, #input_data)
-%         Type: Cell
-%         Values: lons...temp (subject to change)
-% 
-%     The output value will be a cell of size 
-%     #markers x #input_data (lons..temp)
-% 
-%     Stalls{1} will correspond to the first marker,
-%     and Stalls{n} will designated the nth marker
-% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%                       EXAMPLE
-% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%     Stalls = DetermineStall3(...)
-% 
-%     set = Stalls{1}; % - The first marker point
-%     lons = set(:,1);
-%     lats = set(:,2);
-%     speed = set(:,3);
-%     times = set(:,4);
-%     co2 = set(:,5);
-%
-%     * See CoordinateStall.m for better examples *
-%
-% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-
 function Stalls = DetermineStall3(lons, lats, speed, time, co2, temp, markers)
 
     Stalls = cell(length(markers),1);
@@ -94,12 +30,12 @@ function Stalls = DetermineStall3(lons, lats, speed, time, co2, temp, markers)
                     started = 1; % debounce
                     for back = 1:backtrack
                         alpha = i2-backtrack+back;
-                        Stalls{count} = [Stalls{count};long2,lat2,speed(alpha),time(alpha),co2(alpha),temp(alpha)];    
+                        Stalls{count} = [Stalls{count};lon2,lat2,speed(alpha),time(alpha),co2(alpha),temp(alpha)];    
                     end 
                 else
                     % this retrieves several points before the actual
                     % series
-                    Stalls{count} = [Stalls{count};long2,lat2,speed(i2),time(i2),co2(i2),temp(alpha)];
+                    Stalls{count} = [Stalls{count};lon2,lat2,speed(i2),time(i2),co2(i2),temp(i2)];
                 end 
             end
         end
