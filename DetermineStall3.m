@@ -1,4 +1,74 @@
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                        USAGE
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%     Determines all data points within radii designated 
+%     by "markers" (custom structure)
+% 
+%     Each marker contains information on its longitude, 
+%     latitude, and radius.
+% 
+%     ~marker.m
+%     longitude
+%     latitude
+%     radius
+% 
+%     ex: 
+%         mymarker = marker;
+%         mymarker.longitude = 99;
+%         mymarker.latitude = 99;
+%         mymarker.radius = 99;
+%     -
+% 
+%     Note that the output return data is limited by 
+%     the input arguments.
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                      ARGUMENTS
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%     [lons, lats, speed, time, pco2, temp] - 
+%         Raw provided values from dataset
+%         * Should all be the same length *
+% 
+%     [markers] -
+%         A cell containing all the designated markers.
+%         * See above example set up *
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                       OUTPUT
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%     [Stalls] - 
+%         Size: (markers x input_data)
+%         Type: Cell
+%         Values: lons...temp (subject to change)
+% 
+%     The output value will be a cell of size 
+%     #markers x #input_data (lons..temp)
+% 
+%     Stalls{1} will correspond to the first marker,
+%     and Stalls{n} will designated the nth marker
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                       EXAMPLE
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%     Stalls = DetermineStall3(...)
+% 
+%     set = Stalls{1}; % - The first marker point
+%     lons = set(:,1);
+%     lats = set(:,2);
+%     speed = set(:,3);
+%     times = set(:,4);
+%     co2 = set(:,5);
+%
+%     * See CoordinateStall.m for better examples *
+%
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
 function Stalls = DetermineStall3(lons, lats, speed, time, co2, temp, markers)
+
+    assert((length(lons)+length(lats)+length(speed)+length(time)+...
+    length(co2)+length(temp))/6 == length(lons),'Size of input arguments (lons-temp) must be the same');
+
+    assert(isa(markers,'cell'),'markers must be in cell format');
+    
 
     Stalls = cell(length(markers),1);
     

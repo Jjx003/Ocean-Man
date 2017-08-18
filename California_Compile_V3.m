@@ -52,6 +52,8 @@ CO2CompTimeLag = (40) / 3600 ; % 40 seconds delay
 CO2Folder = '/home/jeffxy/Documents/rectdandco2/CO2/'; % adjust accordingly
 CO2Segs = dir([CO2Folder '*.txt']);
 
+RangeFactor = 1.01;
+
 min_lon = -118.430;
 max_lon = -118.418;
 min_lat = 33.754;
@@ -61,29 +63,17 @@ max_lat = 33.766;
 LatRange = max_lat - min_lat;
 LonRange = max_lon - min_lon; 
 
-%The next implementation assures that the plot axes are of approximately
-%the same cartesian distance, to minimize distortion.
-if LonRange <= LatRange/cos(mean(lat)*pi/180)
-    LonRange = LatRange/cos(mean(lat)*pi/180);
-else 
-    LatRange = LonRange*cos(nanmean(lat)*pi/180);
-end
-
-Nlim = (max_lat + min_lat)/2 + LatRange*RangeFactor/2;%North limit for plotting
-Slim = (max_lat + min_lat)/2 - LatRange*RangeFactor/2;%South limit for plotting
-Elim = (max_lon + min_lon)/2 + LonRange*RangeFactor/2;%East limit for plotting
-Wlim = (max_lon + min_lon)/2 - LonRange*RangeFactor/2;%West limit for plotting
-
-zlon = []; zlat = []; ztime = []; c = []; zspeed = []; ztemp = [];
-
-
 
 %% [Zodiac] (pCO2)
 load('Zodiac.mat'); % zodiac
-
+% 
 location = 0;
-
+% 
 zdate = Zodiac.date_num;
+
+% [date_num,dist,speed,lons,lats,depths,temps,salts,cons,fluor] = DirectCompile(fname);
+
+% this is a bit off. ^^ fix this
 
 % zdate = zdate;
 % zlon = zodiac.lons;
@@ -99,12 +89,14 @@ flon = []; flat = []; fdate = []; fsalt = []; fc = []; ftemp = []; ffluor = [];
 
 for i = 1:length(CO2Segs) 
     name = CO2Segs(i).name;
-    [CO2Segs(i).time,CO2Segs(i).date,CO2Segs(i).CO2] = CO2_Reader2(name,CO2CompTimeLag);
-    CO2i = interp1(CO2Segs(i).time/24/3600,CO2Segs(i).CO2,time);
+   [CO2Segs(i).time,CO2Segs(i).date,CO2Segs(i).CO2] = CO2_Reader2(name,CO2CompTimeLag);
+%    [CO2Segs(i).time,CO2Segs(i).CO2] = CO2_Reader2(name,CO2CompTimeLag);
+    CO2i = interp1(CO2Segs(i).time/24/3600,CO2Segs(i).CO2,zdate/24/3600);
     Valid = (~isnan(CO2i));   
     flon = [flon, Zodiac.lons(Valid)'];
     flat = [flat, Zodiac.lats(Valid)'];
-    fdate = [fdate, zdate(Valid)'];
+%     fdate = [fdate, zdate(Valid)'];
+    fdate = [fdate, CO2Segs(i).date(Valid)'];
     fsalt = [fsalt, Zodiac.salts(Valid)'];
     fc = [fc, CO2i(Valid)'];
     ftemp = [ftemp, Zodiac.temps(Valid)'];
@@ -122,6 +114,10 @@ salt(i) = fsalt;
 temp(i) = ftemp;
 fluor(i) = ffluor;
 
+%The next implementation assures that the plot axes are of approximately
+
+zlon = []; zlat = []; ztime = []; c = []; zspeed = []; ztemp = [];
+
 % we don't have these values 
 pH(i) = NaN;
 NO3(i) = NaN;
@@ -129,7 +125,7 @@ PO4(i) = NaN;
 SIO2(i) = NaN;
 NH4(i) = NaN;
 % so put em as NaN
-set(i) = {'SMBO'};
+set(i) = 1; % set 1 = zodiac 
 
 location = location + zlength;
 
@@ -153,7 +149,7 @@ NO3(i) = smbo.no3;
 PO4(i) = smbo.po4;
 SIO2(i) = smbo.sio2;
 NH4(i) = smbo.nh4;
-set(i) = 'Zodiac';
+set(i) = 2; % set 2 = SMBO 2003-2008
 
 %% [...]
 
@@ -161,17 +157,29 @@ set(i) = 'Zodiac';
 
 
 
+
 %% [Compiling]
+try
+    delete(output)
+catch
+	delete(output)
+end
+
+if ~isempty(which(output))
+    delete(output);
+end
 
 % DIC, ALKALINITY, pH, pCO2, 
 % Po4, SIO2, NO3, Chlorophyll/Fluorescence, Oxygen
 % lon, lat, time
 vars = {'date','lon','lat','pCO2','salt','temp','pH','NO3','PO4','SIO2','NH4','set'};
-
 for i = 1:length(vars) 
-    key = vars(i);
-    value = eval(key);
-    nccreate(output,key,'Dimensions',{key,size(value)},'FillValue',NaN);
+    key = vars{i};
+    i
+    value = eval([key '(:,:)']);
+    [r,c] = size(value);
+    nccreate(output,key,'Dimensions',{'rows' r 'coloumns' c},'FillValue',NaN);
     ncwrite(output,key,value);
 end
+disp('Done!');
 

@@ -1,4 +1,4 @@
-
+    
 
 function Output = CalculateData(reference_data, data, save_to_file, output_name)
     %%% [USAGE]: Calculates missing data from data_set 
@@ -44,7 +44,7 @@ function Output = CalculateData(reference_data, data, save_to_file, output_name)
     surface_thresh = 5; % 5 meters? for surface of reference_data 
 
     % equations from (Variability and trends of ocean acidification...A time series from Santa Monica Bay)
-    % modeled eq. not too reliable...
+    % modeled eq.
     data_clone.alks_1 = 119710.92-7050.496*salts+105.789*salts.^2;
     data_clone.alks_2 = 67905.44-3941.614*salts+59.141*salts.^2;
 
@@ -132,6 +132,9 @@ function Output = CalculateData(reference_data, data, save_to_file, output_name)
 
 
 % below is a graveyard 
+
+
+
 
 % function zodiac2 = CalculateData(reference_data,data)
 % 
