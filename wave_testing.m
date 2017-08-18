@@ -1,5 +1,5 @@
 %%%=SETTINGS=%%%
-save_to_file = 1;
+save_to_file = 0;
 playback_dt = 10;
 
 g = 9.81;
@@ -11,7 +11,7 @@ nc = 100; % number of coloumns
 ni = 8000; % time iterations
 depth = 100;
 
-variable_depth = 0;
+variable_depth = 1;
 %%%=INITLIALIZE=%%%
 u = ones(ni,nc+1);
 zeta = zeros(ni,nc);
@@ -70,14 +70,16 @@ else
     end    
 end
 
-try 
-    delete('/home/jeffxy/Documents/nice waves.avi');
-catch
-    disp('ok');
-end
 
 
 if save_to_file
+    
+    try 
+        delete('/home/jeffxy/Documents/nice waves.avi');
+    catch
+        disp('ok');
+    end
+
 
     vidObj = VideoWriter('nice waves');
     open(vidObj);
