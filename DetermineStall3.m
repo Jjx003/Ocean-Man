@@ -110,4 +110,11 @@ function Stalls = DetermineStall3(lons, lats, speed, time, co2, temp, markers)
             end
         end
     end
+    
+%     min = 10000;
+% 
+%     for i = 1:length(Stalls)
+%         set = Stalls{i}
+%         
+%     end
   

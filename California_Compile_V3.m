@@ -175,10 +175,9 @@ end
 vars = {'date','lon','lat','pCO2','salt','temp','pH','NO3','PO4','SIO2','NH4','set'};
 for i = 1:length(vars) 
     key = vars{i};
-    i
     value = eval([key '(:,:)']);
     [r,c] = size(value);
-    nccreate(output,key,'Dimensions',{'rows' r 'coloumns' c},'FillValue',NaN);
+    nccreate(output,key,'Dimensions',{'rows',r,'coloumns',c},'FillValue',NaN);
     ncwrite(output,key,value);
 end
 disp('Done!');

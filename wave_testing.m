@@ -1,5 +1,5 @@
 %%%=SETTINGS=%%%
-save_to_file = 0;
+save_to_file = 1;
 playback_dt = 10;
 
 g = 9.81;
@@ -11,7 +11,7 @@ nc = 100; % number of coloumns
 ni = 8000; % time iterations
 depth = 100;
 
-variable_depth = 1;
+variable_depth = 0;
 %%%=INITLIALIZE=%%%
 u = ones(ni,nc+1);
 zeta = zeros(ni,nc);

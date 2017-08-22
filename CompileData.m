@@ -1,7 +1,10 @@
-% data = [load('KDS_20170524T090147.txt');load('KDS_20170524T103400.txt')];
-% CompileData(data, 1, 'Zodiac')
 
-function zodiac = CompileData(dataz, save_to_file, output_name)
+%%% *
+%%% Later Update:
+%%% The "pCO2" values from this are not the actual pCO2 values.
+%%% For actual pCO2 values use the "CO2Surf.m" function
+
+function Zodiac = CompileData(dataz, save_to_file, output_name)
 
     %%% [USAGE]: To Convert Raw Zodiac data into a structure format 
     %%%
@@ -74,10 +77,11 @@ function zodiac = CompileData(dataz, save_to_file, output_name)
     dy = latsr(2:len)-latsr(1:len-1);
     ds = 6.371E3 * sqrt(dx.^2 + dy.^2);  % in km
     dt = (date_num(2:len) - date_num(1:len-1)) * 3600 * 24;
+    
 
     dist(1:len) = 0.00; % preallocate some more 
     % dist2(1:len) = 0.00;
-    
+    dv = [];
     for i = 1:len-1 % iterating through each of the distances and ds
         current_distance = dist(i);
         delta_distance = ds(i);
@@ -86,7 +90,7 @@ function zodiac = CompileData(dataz, save_to_file, output_name)
         % dist2(i+1) = dist2(i) + distance(lats(i),lons(i),lats(i+1),lons(i+1)) * pi/180 * 6.371E3;
         % manual distance calculation is faster
         if delta_distance == 0 || delta_time == 0 
-            speed(i+1) = 0; % we don't want any NaNs
+            speed(i+1) = speed(i-1); % we don't want any NaNs
         else
             speed(i+1) = delta_distance*1000/delta_time; % speed in m/s
         end
